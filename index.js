@@ -6,14 +6,14 @@ import dotenv from "dotenv";
 
 // Variables
 dotenv.config();
-const mailgunApiKey = process.env.MAILGUN_API_KEY || "xxx";
-const mailgunDomain = process.env.MAILGUN_DOMAIN || "firstnamelastname.me";
+const mailgunApiKey = process.env.MAILGUN_API_KEY || "xoxo";
+const mailgunDomain = process.env.MAILGUN_DOMAIN_NAME || "domain.me";
 const mailgunFrom =
-  process.env.MAILGUN_FROM || "Firstname Lastname <firstnamelastname.me>";
+  process.env.MAILGUN_FROM_ADDRESS || "Sender <domain.me>";
 const verifyEmailLink =
-  process.env.VERIFY_EMAIL_LINK || "https://example.com/verify";
+  process.env.VERIFICATION_EMAIL_LINK || "https://example.com/verify";
 const postgresDBName = process.env.DATABASE_NAME || "webapp";
-const postgresDBUser = process.env.DATABASE_USER || "webapp";
+const postgresDBUser = process.env.DATABASE_USERNAME || "webapp";
 const postgresDBPassword = process.env.DATABASE_PASSWORD || "password";
 const postgresDBHost = process.env.DATABASE_HOST || "localhost";
 
@@ -91,7 +91,7 @@ export const User = postgresDBConnection.define(
   }
 );
 
-cloudEvent("sendVerifyEmail", async (payload) => {
+cloudEvent("sendEmailWithVerificationLink", async (payload) => {
   const payloadMessage = payload.data.message.data;
 
   const message = JSON.parse(Buffer.from(payloadMessage, "base64").toString());
