@@ -1,0 +1,19 @@
+{
+  "name": "fork-serverless",
+  "version": "1.0.0",
+  "description": "cloud functions",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Nagalekha Ramesh",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.3.0",
+    "dotenv": "^16.4.5",
+    "mailgun-js": "^0.22.0",
+    "sequelize": "^6.37.1",
+    "uuid": "^9.0.1"
+  }
+}
