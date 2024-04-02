@@ -16,6 +16,7 @@ const postgresDBName = process.env.DATABASE_NAME || "webapp";
 const postgresDBUser = process.env.DATABASE_USERNAME || "webapp";
 const postgresDBPassword = process.env.DATABASE_PASSWORD || "password";
 const postgresDBHost = process.env.DATABASE_HOST || "localhost";
+const mailVerificationExpiryTime = parseInt(process.env.VERIFICATION_LINK_TIME_WINDOW) || 120000; // default: 2 minutes
 
 // Clients
 const mailgunClient = mailgun({ apiKey: mailgunApiKey, domain: mailgunDomain });
@@ -66,7 +67,12 @@ export const User = postgresDBConnection.define(
         allowNull: false,
         defaultValue: DataTypes.NOW,
     },
-    verification_email_sent_timestamp: {
+    verification_token: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        defaultValue: DataTypes.UUIDV4
+    },
+    verification_link_expiry_timestamp: {
         type: DataTypes.DATE,
         allowNull: true,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
@@ -96,7 +102,7 @@ cloudEvent("sendEmailWithVerificationLink", async (payload) => {
 
   const message = JSON.parse(Buffer.from(payloadMessage, "base64").toString());
 
-  const token = message.id;
+  const token = message.token;
   const email = message.email;
 
   await sendVerificationEmail(email, token);
@@ -126,15 +132,19 @@ export const sendVerificationEmail = async (email, token) => {
 };
 
 export const updateVerificationEmailSentTimestamp = async (token) => {
-  const currentTimestamp = new Date();
+  const currentTimestamp = new Date().getTime();
   try {
     const user = await User.findOne({
       where: {
-        id: token,
+        verification_token: token,
       },
     });
-    user.verification_email_sent_timestamp = currentTimestamp;
+    user.verification_link_expiry_timestamp = new Date(currentTimestamp + mailVerificationExpiryTime);
     await user.save();
+
+    console.debug(
+      `[Cloud Function: Send Verification Email] ${user.id} expiry time stamp changed to  ${new Date(currentTimestamp + mailVerificationExpiryTime)}`
+    );
 
     console.info(
       `[Cloud Function: Send Verification Email] ${user.id} verification email sent at ${currentTimestamp}`
